@@ -7,6 +7,8 @@ module type Integrable = sig
 	type f = t -> Complex.t
 	(** Take the integral over the entire space **)
 	val integrate : f -> Complex.t
+	(** These functions also must be differentiable **)
+	val differentiate : f -> f
 end;;
 
 module OneDimensional = struct
@@ -15,6 +17,9 @@ module OneDimensional = struct
 	let integrate f =
 		List.fold_left Complex.add Complex.zero
 			( List.map f [-5;-4;-3;-2;-1;0;1;2;3;4;5])
+	let differentiate (func:f):f = fun x ->
+		Complex.div (Complex.sub (func (x+1)) (func (x-1)))
+			{Complex.re=2.;im=0.}
 	let mul x y = Complex.mul {Complex.re = (float_of_int x); im = 0.} y
 end;;
 
