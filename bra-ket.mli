@@ -54,5 +54,5 @@ module Make_braket (M : Integrable) = struct
 end;;
 
 module Simple = Make_braket(OneDimensional)
-let psi x = {Complex.re = (float_of_int (5 - x)) ; im = 0.} 
+let psi x = {Complex.re = (float_of_int (5 - (abs x))) ; im = 0.}
 let psi' = Simple.make_bra(psi)
