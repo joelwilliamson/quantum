@@ -37,10 +37,6 @@ module Make_braket (M : Integrable) = struct
 		(fun k' -> M.integrate (fun x -> mul (conj (k x)) (k' x)))
 	
 	let bra_op (b:bra) (o:operator) : bra = b <| o
-	let (!<) (b:bra) : bra = b
-	let ($|) (b:bra) (o:operator) = bra_op b o
-	let (|$) (b:bra) (k:ket) = b k
-	let ($>) (v:Complex.t) _ = v
 
 	let normalize (k:ket) =
 		let normalization_factor =
