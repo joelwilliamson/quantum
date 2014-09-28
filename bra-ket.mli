@@ -51,6 +51,9 @@ module Make_braket (M : Integrable) = struct
 		fun k -> fun x -> M.mul x (k x)
 	let momentum_operator:operator =
 		fun k -> fun x -> Complex.mul i (M.differentiate k @@ x)
+	
+	let squared (op:operator) : operator =
+		fun k -> op @@ op k
 end;;
 
 module Simple = Make_braket(OneDimensional)
