@@ -45,7 +45,7 @@ module Make_braket (M : Integrable) = struct
 		in (fun x -> Complex.mul normalization_factor (k x))
 	
 	let expectation_value (op:operator) k =
-		(make_bra k) |$ op k
+		(make_bra k) @@ op k
 	
 	let position_operator:operator =
 		fun k -> fun x -> M.mul x (k x)
