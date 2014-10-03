@@ -1,15 +1,24 @@
-module type Integrable = sig
-	(** This is the underlying space. **)
+(** Modules satisfy this constraint if the type can be multiplied by and added
+    to complex numbers. **)
+module type CompatibleWithComplex = sig
 	type t
-	(** Multiply a value from the underlying space with a value from the target **)
 	val mul : t -> Complex.t -> Complex.t
-	(** Functions on the underlying space **)
+	val add : t -> Complex.t -> Complex.t
+end
+
+(** Modules satisfy this constraint if they define a function that is integrable **)
+module type Integrable = sig
+	type t
 	type f = t -> Complex.t
-	(** Take the integral over the entire space **)
 	val integrate : f -> Complex.t
-	(** These functions also must be differentiable **)
+end
+
+(** Modules satisfy this constraint if they can be differentiated **)
+module type Differentiable = sig
+	type t
+	type f = t -> Complex.t
 	val differentiate : f -> f
-end;;
+end
 
 module OneDimensional = struct
 	type t = int
@@ -21,20 +30,23 @@ module OneDimensional = struct
 		Complex.div (Complex.sub (func (x+1)) (func (x-1)))
 			{Complex.re=2.;im=0.}
 	let mul x y = Complex.mul {Complex.re = (float_of_int x); im = 0.} y
-end;;
+	let add i c = Complex.add {Complex.re = (float_of_int i); im = 0.} c
+end
 
 let (<|) f g = fun x -> f (g x)
 
-module Make_braket (M : Integrable) = struct
+module Make_braket (A : CompatibleWithComplex)
+		(I : Integrable with type t=A.t)
+		(D : Differentiable with type t = A.t) = struct
 	open Complex
-	type ket = M.f
+	type ket = I.f
 
-	type bra = M.f -> Complex.t
+	type bra = I.f -> Complex.t
 
 	type operator = ket -> ket
 
 	let make_bra (k:ket):bra =
-		(fun k' -> M.integrate (fun x -> mul (conj (k x)) (k' x)))
+		(fun k' -> I.integrate (fun x -> mul (conj (k x)) (k' x)))
 	
 	let bra_op (b:bra) (o:operator) : bra = b <| o
 
@@ -48,13 +60,13 @@ module Make_braket (M : Integrable) = struct
 		(make_bra k) @@ op k
 	
 	let position_operator:operator =
-		fun k -> fun x -> M.mul x (k x)
+		fun k -> fun x -> A.mul x (k x)
 	let momentum_operator:operator =
-		fun k -> fun x -> Complex.mul i (M.differentiate k @@ x)
+		fun k -> fun x -> Complex.mul i (D.differentiate k @@ x)
 	
 	let squared (op:operator) : operator = op <| op
-end;;
+end
 
-module Simple = Make_braket(OneDimensional)
+module Simple = Make_braket(OneDimensional)(OneDimensional)(OneDimensional)
 let psi x = {Complex.re = (float_of_int (5 - (abs x))) ; im = 0.}
 let psi' = Simple.make_bra(psi)
